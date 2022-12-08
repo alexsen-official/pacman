@@ -30471,7 +30471,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const PIXI = __importStar(__webpack_require__(/*! pixi.js */ "./node_modules/pixi.js/lib/index.js"));
 class Background {
     constructor(scene, image) {
-        this.texture = PIXI.Texture.from(`images/${image}`);
+        this.texture = PIXI.Texture.from(`images/background/${image}`);
         this.sprite = new PIXI.Sprite(this.texture);
         this.sprite.width = window.innerWidth;
         this.sprite.height = window.innerHeight;
@@ -30534,6 +30534,7 @@ const PIXI = __importStar(__webpack_require__(/*! pixi.js */ "./node_modules/pix
 class Button {
     constructor(scene, text, position, event) {
         this.text = new PIXI.Text(text, {
+            fontFamily: 'Press Start 2P',
             fill: 0xffffff,
         });
         this.text.on('pointerdown', event);
@@ -30585,12 +30586,13 @@ const PIXI = __importStar(__webpack_require__(/*! pixi.js */ "./node_modules/pix
 const math_1 = __webpack_require__(/*! ./math */ "./src/math.ts");
 class Dot {
     constructor(scene, position) {
-        this.radius = 4;
+        this.size = 7;
         this.color = this.getRandomColor();
         this.ticker = new PIXI.Ticker();
         this.graphics = new PIXI.Graphics()
-            .beginFill(this.color)
-            .drawCircle(0, 0, this.radius);
+            .beginFill(0xe9b8af)
+            .drawRect(0, 0, this.size, this.size);
+        this.graphics.pivot.set(0.5);
         this.graphics.position.set(position.x, position.y);
         this.animate();
         scene.add(this.graphics);
@@ -30609,7 +30611,7 @@ class Dot {
     }
     checkCollision(sprite) {
         const dist = (0, math_1.distance)(sprite.position, this.graphics.position);
-        return dist < sprite.width / 2 + this.radius;
+        return dist < sprite.width / 2 + this.size;
     }
     destroy() {
         this.ticker.destroy();
@@ -30668,7 +30670,7 @@ class Game {
     constructor(app) {
         this.scenes = {
             menu: new scene_1.default(app, 'menu-background.jpg'),
-            game: new scene_1.default(app, 'game-background.png'),
+            game: new scene_1.default(app, 'game-background.jpg'),
             victory: new scene_1.default(app, 'victory-background.png'),
             defeat: new scene_1.default(app, 'defeat-background.jpg'),
         };
@@ -30691,14 +30693,19 @@ class Game {
     }
     spawnPacman() {
         const pacmanTextures = [
-            PIXI.Texture.from('images/pacman-1.png'),
-            PIXI.Texture.from('images/pacman-2.png'),
+            PIXI.Texture.from('images/pacman/pacman-1.png'),
+            PIXI.Texture.from('images/pacman/pacman-2.png'),
+            PIXI.Texture.from('images/pacman/pacman-3.png'),
+            PIXI.Texture.from('images/pacman/pacman-4.png'),
         ];
         return new pacman_1.default(this.scenes.game, pacmanTextures);
     }
     spawnGhost() {
-        const ghostTexture = PIXI.Texture.from('images/ghost.png');
-        return new ghost_1.default(this.scenes.game, ghostTexture, this.pacman);
+        const ghostTextures = [
+            PIXI.Texture.from('images/ghost/ghost-1.png'),
+            PIXI.Texture.from('images/ghost/ghost-2.png'),
+        ];
+        return new ghost_1.default(this.scenes.game, ghostTextures, this.pacman);
     }
     checkGhostCollision() {
         if (this.ghost.checkCollision()) {
@@ -30740,17 +30747,18 @@ class Game {
     initScore() {
         const scorePosition = new pixi_js_1.Point(window.innerWidth / 2, this.padding / 2);
         const scoreStyle = {
+            fontFamily: 'Press Start 2P',
             fill: 0xffffff,
         };
         return new score_1.default(this.scenes.game, scorePosition, scoreStyle);
     }
     start() {
-        new button_1.default(this.scenes.menu, 'Play!', new pixi_js_1.Point(window.innerWidth / 2, window.innerHeight - this.padding), () => this.play());
+        new button_1.default(this.scenes.menu, 'Play!', new pixi_js_1.Point(window.innerWidth / 2, window.innerHeight / 2), () => this.play());
         this.showScene(this.scenes.menu);
     }
     restart() {
         this.pacman.resetAll();
-        this.ghost.randomPosition();
+        this.ghost.resetPosition();
         this.destroyDots();
         this.dots = this.generateDots();
         this.score.reset();
@@ -30817,14 +30825,16 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const PIXI = __importStar(__webpack_require__(/*! pixi.js */ "./node_modules/pixi.js/lib/index.js"));
 const math_1 = __webpack_require__(/*! ./math */ "./src/math.ts");
 class Ghost {
-    constructor(scene, texture, pacman) {
-        this.sprite = new PIXI.Sprite(texture);
+    constructor(scene, textures, pacman) {
+        this.sprite = new PIXI.AnimatedSprite(textures);
         this.ticker = new PIXI.Ticker();
         this.target = pacman.sprite;
         this.moveSpeed = pacman.moveSpeed * 0.8;
+        this.sprite.animationSpeed = 1000;
         this.sprite.anchor.set(0.5);
-        this.sprite.scale.set(0.1);
-        this.randomPosition();
+        this.sprite.scale.set(0.5);
+        this.sprite.play();
+        this.resetPosition();
         this.animate();
         this.ticker.add((delta) => this.move(delta));
         scene.add(this.sprite);
@@ -30849,8 +30859,8 @@ class Ghost {
         const dist = (0, math_1.distance)(this.target.position, this.sprite.position);
         return dist < this.target.width / 2 + this.sprite.width / 2;
     }
-    randomPosition() {
-        this.sprite.position.set(Math.random() * window.innerWidth, Math.random() * window.innerHeight);
+    resetPosition() {
+        this.sprite.position.set(-this.sprite.width, window.innerHeight / 2);
     }
 }
 exports["default"] = Ghost;
@@ -30998,31 +31008,22 @@ const vector_1 = __importDefault(__webpack_require__(/*! ./vector */ "./src/vect
 const key_1 = __importDefault(__webpack_require__(/*! ./key */ "./src/key.ts"));
 class Pacman {
     constructor(scene, textures) {
-        this.sprite = new PIXI.Sprite();
+        this.sprite = new PIXI.AnimatedSprite(textures);
         this.ticker = new PIXI.Ticker();
         this.vector = new vector_1.default(0, 0);
         this.textures = textures;
         this.moveSpeed = 3;
+        this.sprite.animationSpeed = 3000;
         this.sprite.anchor.set(0.5);
+        this.sprite.play();
         this.resetAll();
         this.control();
-        this.animate();
         this.ticker.add((delta) => {
             this.move(delta);
             this.rotate(delta);
         });
         this.ticker.start();
         scene.add(this.sprite);
-    }
-    animate() {
-        let textureIndex = 0;
-        setInterval(() => {
-            if (textureIndex === this.textures.length) {
-                textureIndex = 0;
-            }
-            this.sprite.texture = this.textures[textureIndex];
-            textureIndex++;
-        }, 300);
     }
     control() {
         const offset = 0.4;
@@ -31078,7 +31079,7 @@ class Pacman {
         this.sprite.scale.y += this.sprite.scale.y > 0 ? 0.0025 : -0.0025;
     }
     resetScale() {
-        this.sprite.scale.set(0.125);
+        this.sprite.scale.set(0.4);
     }
     resetPosition() {
         this.sprite.position.set(window.innerWidth / 2, window.innerHeight / 2);
@@ -31205,7 +31206,7 @@ class Score {
         let time = 0;
         ticker.add((delta) => {
             const sin = Math.sin(time);
-            this.text.scale.set(1 + (sin * 0.2));
+            this.text.scale.set(1 + (sin * 0.1));
             if (sin <= -0.98) {
                 ticker.destroy();
             }
