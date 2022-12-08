@@ -30471,7 +30471,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const PIXI = __importStar(__webpack_require__(/*! pixi.js */ "./node_modules/pixi.js/lib/index.js"));
 class Background {
     constructor(scene, image) {
-        this.texture = PIXI.Texture.from(`images/background/${image}`);
+        this.texture = PIXI.Texture.from(`images/${image}`);
         this.sprite = new PIXI.Sprite(this.texture);
         this.sprite.width = window.innerWidth;
         this.sprite.height = window.innerHeight;
@@ -30693,17 +30693,17 @@ class Game {
     }
     spawnPacman() {
         const pacmanTextures = [
-            PIXI.Texture.from('images/pacman/pacman-1.png'),
-            PIXI.Texture.from('images/pacman/pacman-2.png'),
-            PIXI.Texture.from('images/pacman/pacman-3.png'),
-            PIXI.Texture.from('images/pacman/pacman-4.png'),
+            PIXI.Texture.from('images/pacman-1.png'),
+            PIXI.Texture.from('images/pacman-2.png'),
+            PIXI.Texture.from('images/pacman-3.png'),
+            PIXI.Texture.from('images/pacman-4.png'),
         ];
         return new pacman_1.default(this.scenes.game, pacmanTextures);
     }
     spawnGhost() {
         const ghostTextures = [
-            PIXI.Texture.from('images/ghost/ghost-1.png'),
-            PIXI.Texture.from('images/ghost/ghost-2.png'),
+            PIXI.Texture.from('images/ghost-1.png'),
+            PIXI.Texture.from('images/ghost-2.png'),
         ];
         return new ghost_1.default(this.scenes.game, ghostTextures, this.pacman);
     }
